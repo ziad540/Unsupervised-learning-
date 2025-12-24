@@ -172,3 +172,4 @@ class GaussianMixtureModel:
 #     plt.subplot(1, 2, 1); plt.plot(sub['k'], sub['bic'], label=t, marker='o'); plt.title('BIC')
 #     plt.subplot(1, 2, 2); plt.plot(sub['k'], sub['aic'], label=t, marker='o'); plt.title('AIC')
 # plt.legend(); plt.show()
+
