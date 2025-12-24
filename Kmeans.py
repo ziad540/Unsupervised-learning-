@@ -1,7 +1,7 @@
 import time
 import numpy as np
 
-class KMeans:
+class Kmeans:
     def __init__(self, k, max_iter=300, tol=1e-4, init="kpp"):
         self.k = k
         self.max_iter = max_iter 
