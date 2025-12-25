@@ -27,24 +27,24 @@ class Autoencoder:
         self.W, self.b = [], []
         for i in range(len(self.layer_dims)-1):
             self.W.append(
-                np.random.randn(self.layer_dims[i], self.layer_dims[i+1]) * 0.01 # He initialization
+                np.random.randn(self.layer_dims[i], self.layer_dims[i+1]) * 0.01 # Random weight initialization
             )
             self.b.append(np.zeros((1, self.layer_dims[i+1]))) # Bias initialization
 
     def forward(self, X):
         self.Z, self.A = [], [X] # Z: pre-activation, A: activation
         for W, b in zip(self.W, self.b): 
-            z = self.A[-1] @ W + b # Linear step
+            z = self.A[-1] @ W + b  #Z= W* last activation + b
             self.Z.append(z) # Store pre-activation
             self.A.append(self.act(z)) # Activation step
-        return self.A[-1] # Output
+        return self.A[-1] # X reconstructed
 
     def backward(self, X): 
         m = X.shape[0] # Number of samples
         dA = (self.A[-1] - X) / m # Derivative of MSE loss
 
         for i in reversed(range(len(self.W))): # reversed meaning from last layer to first
-            dZ = dA * self.act_deriv(self.Z[i]) # Derivative of activation
+            dZ = dA * self.act_deriv(self.Z[i]) # dL/dz = dL/da * da/dz
             dW = self.A[i].T @ dZ + self.l2 * self.W[i] # Derivative of weights with L2 regularization
             db = np.sum(dZ, axis=0, keepdims=True) # Derivative of biases
 
@@ -68,7 +68,7 @@ class Autoencoder:
             losses.append(loss)
             self.lr *= decay # Decay learning rate
 
-            if epoch % 10 == 0:
+            if epoch % 50 == 0:
                 print(f"Epoch {epoch}, MSE={loss:.4f}") # Print progress
 
         return losses

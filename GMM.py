@@ -150,26 +150,5 @@ class GaussianMixtureModel:
         n_params = (self.n_components - 1) + (self.n_components * n_features) + cp
         return 2 * n_params - 2 * log_likelihood
 
-# ========================
-# Data Loading & Plotting
-# ========================
-# df = pd.read_csv('/Volumes/ELHOSS SSD/ML/labs/lab4/Unsupervised-learning-/data.csv')
-# X_cols = [c for c in df.columns if c not in ['id', 'diagnosis', 'Unnamed: 32']]
-# X = StandardScaler().fit_transform(df[X_cols].values)
 
-# ks = range(1, 8)
-# results = []
-# for t in ['full', 'tied', 'diag', 'spherical']:
-#     for k in ks:
-#         gmm = GaussianMixtureModel(n_components=k, covariance_type=t, random_state=42).fit(X)
-#         results.append({'k': k, 'type': t, 'bic': gmm.bic(X), 'aic': gmm.aic(X)})
-
-# res_df = pd.DataFrame(results)
-
-# plt.figure(figsize=(12, 5))
-# for t in ['full', 'tied', 'diag', 'spherical']:
-#     sub = res_df[res_df['type'] == t]
-#     plt.subplot(1, 2, 1); plt.plot(sub['k'], sub['bic'], label=t, marker='o'); plt.title('BIC')
-#     plt.subplot(1, 2, 2); plt.plot(sub['k'], sub['aic'], label=t, marker='o'); plt.title('AIC')
-# plt.legend(); plt.show()
 

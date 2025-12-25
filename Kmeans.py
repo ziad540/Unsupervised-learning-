@@ -12,12 +12,13 @@ class Kmeans:
         n_samples = X.shape[0]
 
         if self.init == "random":
-            idx = np.random.choice(n_samples, self.k, replace=False)
+            idx = np.random.choice(n_samples, self.k, replace=False) # initialize centroids randomly
             return X[idx]
 
         # K-Means++
-        centroids = [X[np.random.randint(n_samples)]]
+        centroids = [X[np.random.randint(n_samples)]] #initialize first centroid only
 
+        #pick the rest k-1 centroids using distance weighted probability
         for _ in range(1, self.k):
             # Distance to nearest centroid
             distances = np.min(
@@ -31,19 +32,19 @@ class Kmeans:
             total = distances.sum()
 
             # Check for 0 OR NaN
-            if total <= 1e-20 or np.isnan(total):
-                idx = np.random.randint(n_samples)
+            if total <= 1e-20 or np.isnan(total):  # all distances are zero
+                idx = np.random.randint(n_samples) # pick a random point as centroid
                 centroids.append(X[idx])
                 continue
 
-            probs = distances / total
+            probs = distances / total 
             
             # Double check probs explicitly before choice
             if np.isnan(probs).any():
                  # Fallback to uniform if probs are broken
-                 probs = np.ones(n_samples) / n_samples
+                 probs = np.ones(n_samples) / n_samples # uniform distribution
             
-            idx = np.random.choice(n_samples, p=probs)
+            idx = np.random.choice(n_samples, p=probs) # pick next centroid based on probs
             centroids.append(X[idx])
 
         return np.array(centroids)
@@ -55,12 +56,13 @@ class Kmeans:
 
         for iteration in range(self.max_iter):
             # Assign clusters
-            dist = np.linalg.norm(X[:, None] - self.centroids, axis=2)
+            dist = np.linalg.norm(X[:, None] - self.centroids, axis=2) # X[:, None] shape (n_samples, 1, n_features) 
+             # centroids shape (1, k, n_features)
             self.labels = np.argmin(dist, axis=1)
 
             new_centroids = []
 
-            for i in range(self.k):
+            for i in range(self.k): # Recompute centroids
                 cluster_points = X[self.labels == i]
 
                 if len(cluster_points) == 0:
@@ -72,12 +74,12 @@ class Kmeans:
 
             new_centroids = np.array(new_centroids)
 
-            # Inertia
-            inertia = np.sum((X - self.centroids[self.labels]) ** 2)
+            # Inertia, Distance between points and their centroids
+            inertia = np.sum((X - self.centroids[self.labels]) ** 2) # To monitor convergence
             self.inertia_history.append(inertia)
 
             # Convergence check
-            if np.linalg.norm(self.centroids - new_centroids) < self.tol:
+            if np.linalg.norm(self.centroids - new_centroids) < self.tol: # It converged, stop
                 self.centroids = new_centroids
                 self.n_iter_ = iteration + 1
                 break
@@ -85,7 +87,7 @@ class Kmeans:
             self.centroids = new_centroids
 
         else:
-            self.n_iter_ = self.max_iter
+            self.n_iter_ = self.max_iter #if break never happened
 
 
     def predict(self, X):
