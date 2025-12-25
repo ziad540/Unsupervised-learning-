@@ -2,6 +2,11 @@ import numpy as np
 
 class EvaluationMetrics:
     
+    #It measures how "distinct" the clusters are. Is this point closer to its own cluster than others?
+    # ranges from -1 to 1 (1 is perfect, 0 is overlapping, -1 is wrong)
+    #s(i)=(b(i)-a(i))/max(a(i),b(i))
+    # a(i): average distance to all other points in the same cluster
+    # b(i): average distance to all points in the nearest cluster
     @staticmethod
     def silhouette_score(X, labels):
         """
@@ -50,6 +55,12 @@ class EvaluationMetrics:
 
         return np.mean(silhouette_vals)
 
+
+    #it measures worst case ratio of cluster spread to cluster separation
+    # ranges from 0 to infinity (lower is better)
+    #DB= (1/k) sum(max((S(i)+S(j))/M(i,j)))
+    # S(i): average distance of all points in cluster i to centroid i
+    # M(i,j): distance between centroids of clusters i and j
     @staticmethod
     def davies_bouldin(X, labels):
         """
@@ -90,6 +101,12 @@ class EvaluationMetrics:
 
         return np.mean(R)
 
+
+    # ratio of between-cluster variance to within-cluster variance, rewards tight and far from global mean clusters
+    # ranges from 0 to infinity (higher is better)
+    # CH = (SSB/(k-1)) / (SSW/(n-k))
+    # SSB:Variance between different cluster centroids (Spread of clusters).
+    # SSW: Variance inside each cluster (Tightness of clusters).
     @staticmethod
     def calinski_harabasz(X, labels):
         """
@@ -123,12 +140,19 @@ class EvaluationMetrics:
 
         return (SSB / (n_clusters - 1)) / (SSW / (n_samples - n_clusters))
 
+
+    # It measures the percentage of the total number of data points that were classified correctly
+    # ranges from 0 to 1 (1 is perfect)
+    # Purity = (1/n) sum(max_j |C_k ∩ L_j|)
+    # c_k: set of points in cluster k
+    # L_j: set of points in true class j
+    # max_j |C_k ∩ L_j| : Count of the dominant class in that cluster.
     @staticmethod
     def purity(y_true, y_pred):
         """
         Higher is better. 
         """
-        # Fix: Use np.unique to handle string labels or non-consecutive integers
+        # Use np.unique to handle string labels or non-consecutive integers
         total_intersection = 0
         for k in np.unique(y_pred):
             # Get true labels for points in this cluster
@@ -143,6 +167,11 @@ class EvaluationMetrics:
             
         return total_intersection / len(y_true)
 
+    # It counts pairs of points that are "agreed upon" (both in the same group or both in different groups)(Lego)
+    # ranges from 0 to 1 (0 = random, 1 = perfect)
+    # ARI = (Index - Expected Index) / (Max Index - Expected Index)
+    # Index: number of agreeing pairs
+    # Expected Index: expected number of agreeing pairs by chance
     @staticmethod
     def adjusted_rand_index(labels_true, labels_pred):
         """
@@ -186,6 +215,12 @@ class EvaluationMetrics:
             
         return (index - expected_index) / (max_index - expected_index)
 
+
+    # Uses entropy to measure how much knowing "Predicted cluster" reduces uncertainty about "True class"
+    # ranges from 0 to 1 (1 is perfect)
+    # NMI(Y, C) = 2 * I(Y;C) / (H(Y) + H(C))
+    # I(Y;C): Mutual Information between true labels Y and predicted clusters C
+    # H(Y), H(C): Entropy of true labels and predicted clusters
     @staticmethod
     def normalized_mutual_info(labels_true, labels_pred):
         """
