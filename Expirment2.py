@@ -1,9 +1,10 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+# Importing classes from your GMM.py file
 from gmmBase import GaussianMixtureModel, StandardScaler
 
 # 1. Load Data
-# Update the path if necessary
 file_path = '/Volumes/ELHOSS SSD/ML/labs/lab4/data.csv'
 df = pd.read_csv(file_path)
 
@@ -15,10 +16,10 @@ X = StandardScaler().fit_transform(df[X_cols].values)
 ks = range(1, 8)
 cov_types = ['full', 'tied', 'diag', 'spherical']
 results = []
-convergence_data = {}
+convergence_details = []
 
 # 4. Run Analysis
-print("Running GMM Experiments...")
+print("Running GMM Experiments and Analyzing Convergence...")
 for t in cov_types:
     for k in ks:
         # Create and fit model
@@ -32,17 +33,26 @@ for t in cov_types:
             'AIC': gmm.aic(X)
         })
         
-        # Save convergence for k=2 specifically
+        # Capture Convergence Analysis for k=2 (The most relevant cluster count)
         if k == 2:
-            convergence_data[t] = gmm.log_likelihood_history_
+            history = gmm.log_likelihood_history_
+            for i, ll in enumerate(history):
+                convergence_details.append({
+                    'type': t,
+                    'iteration': i + 1,
+                    'avg_log_likelihood': ll
+                })
 
+# 5. Numeric Convergence Analysis Output
+conv_df = pd.DataFrame(convergence_details)
 res_df = pd.DataFrame(results)
 
-# 5. Output Numeric Results
-print("\n--- AIC/BIC SUMMARY ---")
-print(res_df.sort_values(by='BIC').head(10).to_string(index=False))
+print("\n--- NUMERIC CONVERGENCE ANALYSIS (K=2) ---")
+# Pivot to show how each covariance type improves over iterations
+convergence_pivot = conv_df.pivot(index='iteration', columns='type', values='avg_log_likelihood')
+print(convergence_pivot.head(15)) # Show first 15 steps
 
-# 6. Plotting
+# 6. Plotting Results
 
 plt.figure(figsize=(14, 5))
 for t in cov_types:
@@ -50,16 +60,28 @@ for t in cov_types:
     plt.subplot(1, 2, 1); plt.plot(sub['k'], sub['BIC'], label=t, marker='o'); plt.title('BIC Comparison')
     plt.subplot(1, 2, 2); plt.plot(sub['k'], sub['AIC'], label=t, marker='o'); plt.title('AIC Comparison')
 
-plt.subplot(1, 2, 1); plt.xlabel('Number of Clusters (K)'); plt.legend()
-plt.subplot(1, 2, 2); plt.xlabel('Number of Clusters (K)'); plt.legend()
+plt.subplot(1, 2, 1); plt.xlabel('K'); plt.legend()
+plt.subplot(1, 2, 2); plt.xlabel('K'); plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Convergence Plot
+# 7. Visualization of Convergence
 
-plt.figure(figsize=(8, 5))
-for t, history in convergence_data.items():
-    plt.plot(history, label=f'{t} cov')
-plt.title('Log-Likelihood Convergence History (K=2)')
-plt.xlabel('Iteration'); plt.ylabel('Avg Log-Likelihood'); plt.legend(); plt.grid(True)
+plt.figure(figsize=(9, 6))
+for t in cov_types:
+    history = conv_df[conv_df['type'] == t]['avg_log_likelihood'].values
+    plt.plot(history, label=f'Covariance: {t}', linewidth=2)
+
+plt.title('Log-Likelihood Convergence Analysis (K=2)')
+plt.xlabel('Iteration Number')
+plt.ylabel('Average Log-Likelihood')
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.7)
 plt.show()
+
+# 8. Convergence Speed Summary
+print("\n--- CONVERGENCE SPEED SUMMARY ---")
+for t in cov_types:
+    iters = conv_df[conv_df['type'] == t]['iteration'].max()
+    final_ll = conv_df[conv_df['type'] == t]['avg_log_likelihood'].iloc[-1]
+    print(f"Type: {t:10} | Iterations to Converge: {iters:3} | Final LL: {final_ll:.4f}")
